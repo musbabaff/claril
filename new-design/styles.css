@@ -1,0 +1,250 @@
+/* ============================================================
+   SYNAPSE — Universal Multi-Agent Document Intelligence
+   Theme tokens, base reset, atomic utilities.
+   ============================================================ */
+
+:root {
+  /* Light surface */
+  --bg: #FAF9F6;
+  --bg-alt: #F4F2EC;
+  --surface: #FFFFFF;
+  --surface-2: #FBFAF7;
+  --ink: #1C1917;
+  --ink-2: #29261F;
+  --muted: #6B6862;
+  --muted-2: #9C988F;
+  --hairline: rgba(28, 25, 23, 0.08);
+  --hairline-2: rgba(28, 25, 23, 0.14);
+  --hairline-strong: rgba(28, 25, 23, 0.22);
+
+  /* Accent (tweakable). Default = soft gold */
+  --accent: oklch(0.74 0.13 75);
+  --accent-ink: oklch(0.42 0.10 75);
+  --accent-soft: oklch(0.95 0.04 80);
+  --accent-glow: oklch(0.74 0.13 75 / 0.22);
+
+  /* Semantic */
+  --ok: oklch(0.65 0.13 155);
+  --warn: oklch(0.74 0.14 60);
+  --err: oklch(0.62 0.18 25);
+
+  /* Type */
+  --f-display: "Newsreader", "Charter", "Iowan Old Style", Georgia, serif;
+  --f-sans: "Geist", "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Layout */
+  --maxw: 1240px;
+  --pad-x: clamp(20px, 4vw, 56px);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-xs: 5px;
+}
+
+[data-theme="dark"] {
+  --bg: #0B0B0A;
+  --bg-alt: #131210;
+  --surface: #16140F;
+  --surface-2: #1B1814;
+  --ink: #F5F2EC;
+  --ink-2: #E8E3D7;
+  --muted: #8A847A;
+  --muted-2: #5E5950;
+  --hairline: rgba(245, 242, 236, 0.08);
+  --hairline-2: rgba(245, 242, 236, 0.14);
+  --hairline-strong: rgba(245, 242, 236, 0.24);
+  --accent-soft: oklch(0.28 0.05 80 / 0.6);
+}
+
+/* ============ Reset / base ============ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11";
+  transition: background 0.4s ease, color 0.4s ease;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+::selection { background: var(--accent); color: #fff; }
+
+/* Hairline-fine borders (use 0.5px tricks where possible) */
+.hairline { border: 1px solid var(--hairline); }
+.hairline-b { border-bottom: 1px solid var(--hairline); }
+.hairline-t { border-top: 1px solid var(--hairline); }
+
+/* Typography presets */
+.f-display { font-family: var(--f-display); font-weight: 400; letter-spacing: -0.02em; }
+.f-mono    { font-family: var(--f-mono); font-feature-settings: "ss01", "ss02"; }
+.tabular   { font-variant-numeric: tabular-nums; }
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.eyebrow .dot {
+  display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent); margin-right: 8px;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  vertical-align: middle;
+  animation: pulse-dot 2.8s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 3px var(--accent-glow); }
+  50%      { box-shadow: 0 0 0 6px var(--accent-glow); }
+}
+
+/* Layout */
+.container { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--pad-x); }
+
+/* Section header pattern */
+.sec-head {
+  display: flex; flex-direction: column; gap: 14px; max-width: 720px;
+  margin-bottom: 56px;
+}
+.sec-head h2 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  font-size: clamp(32px, 4vw, 46px);
+  line-height: 1.04;
+  margin: 0;
+  color: var(--ink);
+}
+.sec-head h2 em { font-style: italic; color: var(--accent-ink); }
+.sec-head p {
+  font-size: 17px;
+  color: var(--muted);
+  margin: 0;
+  max-width: 560px;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13.5px; font-weight: 500;
+  letter-spacing: -0.005em;
+  transition: all 0.15s ease;
+  position: relative;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 1px 2px rgba(28,25,23,0.25),
+    0 0 0 1px var(--ink);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,0.14) inset, 0 4px 12px rgba(28,25,23,0.35), 0 0 0 1px var(--ink); }
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--hairline-2);
+}
+.btn-ghost:hover { background: var(--surface); }
+.btn-link {
+  height: auto; padding: 0; color: var(--muted);
+  font-size: 13.5px;
+}
+.btn-link:hover { color: var(--ink); }
+.btn .arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.btn:hover .arrow { transform: translateX(2px); }
+
+/* Card primitive */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(28,25,23,0.03);
+}
+
+/* Grain class removed — unused, and the data URI confused the offline bundler. */
+
+/* Glow chip */
+.glow-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 11px 5px 9px;
+  font-family: var(--f-mono);
+  font-size: 11px; letter-spacing: 0.04em;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+}
+.glow-chip::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+/* Faint repeating grid backdrop */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--hairline) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: -1px -1px;
+}
+
+/* Diagonal stripe placeholder (for image slots) */
+.placeholder-stripe {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--hairline) 0,
+    var(--hairline) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
+/* Animated pulse glow */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%      { box-shadow: 0 0 0 10px transparent; }
+}
+
+@keyframes flow {
+  0%   { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* For animated console */
+.fade-up { animation: fade-up 0.35s ease both; }
+
+/* Numeric ticker */
+.ticker {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Scrollbar-styled chrome inside console panels */
+.thin-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.thin-scroll::-webkit-scrollbar-thumb { background: var(--hairline-2); border-radius: 3px; }
+.thin-scroll::-webkit-scrollbar-track { background: transparent; }

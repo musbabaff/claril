@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@import "./styles/styles.css";
+@import "./styles/sections.css";
+@import "./styles/auth.css";
+@import "./styles/console.css";
+@import "./styles/dashboard.css";
+@import "./styles/dashboard-extra.css";
+

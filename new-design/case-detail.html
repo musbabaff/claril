@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Case · Acme Q3 invoices — Synapse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Geist:wght@300..700&family=JetBrains+Mono:wght@300..600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="sections.css" />
+<link rel="stylesheet" href="auth.css" />
+<link rel="stylesheet" href="dashboard.css" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel">
+const { useState: useS, useEffect: useE } = React;
+
+const FILES = [
+  { id: "f1", name: "Acme_Invoice_AC-4471.pdf", kind: "invoice", size: "284 KB", pages: 2,
+    fields: [
+      { k: "vendor",      v: "Acme Industrial Co.",     src: "page 1 · header",         conf: 0.992 },
+      { k: "invoice_no",  v: "AC-2024-04471",           src: "page 1 · meta block",      conf: 0.996 },
+      { k: "issued",      v: "2024-09-14",              src: "page 1 · meta block",      conf: 0.988 },
+      { k: "due",         v: "2024-10-14",              src: "page 1 · meta block",      conf: 0.988 },
+      { k: "currency",    v: "USD",                     src: "page 1 · totals",          conf: 0.999 },
+      { k: "subtotal",    v: "$18,420.00",              src: "page 1 · totals",          conf: 0.997 },
+      { k: "tax",         v: "$1,473.60",               src: "page 1 · totals",          conf: 0.992 },
+      { k: "total",       v: "$19,893.60",              src: "page 1 · totals",          conf: 0.998 },
+      { k: "line_items",  v: "7",                       src: "page 1-2 · table",         conf: 0.978 },
+      { k: "payment_terms", v: "Net 30",                src: "page 2 · terms",           conf: 0.84  },
+    ],
+    json: {
+      type: "Invoice",
+      vendor: "Acme Industrial Co.",
+      invoice_no: "AC-2024-04471",
+      issued: "2024-09-14",
+      due: "2024-10-14",
+      currency: "USD",
+      subtotal: 18420.00,
+      tax: 1473.60,
+      total: 19893.60,
+      line_items: 7,
+      payment_terms: "Net 30",
+      audit: { chain_root: "sha256:a7c1f0…29bd", steps: 6, retried: false },
+    },
+    cost: { usd: 0.0241, tin: 4860, tout: 612, ms: 2410 } },
+
+  { id: "f2", name: "Acme_Invoice_AC-4472.pdf", kind: "invoice", size: "260 KB", pages: 2,
+    fields: [
+      { k: "vendor",      v: "Acme Industrial Co.",     src: "page 1 · header",        conf: 0.991 },
+      { k: "invoice_no",  v: "AC-2024-04472",           src: "page 1 · meta block",     conf: 0.997 },
+      { k: "issued",      v: "2024-09-18",              src: "page 1 · meta block",     conf: 0.989 },
+      { k: "total",       v: "$8,212.00",               src: "page 1 · totals",         conf: 0.996 },
+    ],
+    json: { type: "Invoice", invoice_no: "AC-2024-04472", total: 8212.00 },
+    cost: { usd: 0.0188, tin: 3812, tout: 480, ms: 1980 } },
+
+  { id: "f3", name: "Acme_Invoice_AC-4473.pdf", kind: "invoice", size: "312 KB", pages: 3, retried: true,
+    fields: [
+      { k: "vendor",      v: "Acme Industrial Co.",  src: "page 1 · header",  conf: 0.994 },
+      { k: "invoice_no",  v: "AC-2024-04473",        src: "page 1 · meta",    conf: 0.998 },
+      { k: "total",       v: "$31,408.40",           src: "page 2 · totals",  conf: 0.802, warn: true },
+    ],
+    json: { type: "Invoice", invoice_no: "AC-2024-04473", total: 31408.40, audit: { retried: true } },
+    cost: { usd: 0.0382, tin: 7104, tout: 880, ms: 3210 } },
+
+  { id: "f4", name: "Acme_Credit_Note_CN-118.pdf", kind: "receipt", size: "94 KB", pages: 1,
+    fields: [
+      { k: "type",      v: "CreditNote",  src: "page 1 · header",  conf: 0.99  },
+      { k: "amount",    v: "-$1,240.00",  src: "page 1 · totals",  conf: 0.998 },
+    ],
+    json: { type: "CreditNote", amount: -1240.00 },
+    cost: { usd: 0.0094, tin: 1510, tout: 210, ms: 1240 } },
+];
+
+function CaseDetail() {
+  const [activeId, setActiveId] = useS(FILES[0].id);
+  const [tab, setTab]           = useS("fields");
+  const [previewToast, setPT]   = useS(null);
+  const active = FILES.find((f) => f.id === activeId);
+
+  const openPreview = (f) => {
+    setPT(`Preview · ${f.name}`);
+    setTimeout(() => setPT(null), 2800);
+  };
+
+  return (
+    <div className="dash-shell">
+      <DashboardSidebar current="cases"/>
+      <main className="dash-main">
+        <DashboardTopbar
+          title="Acme Q3 invoices"
+          crumbs={[
+            { label: "Acme Industrial · prod", href: "#" },
+            { label: "Cases ledger", href: "cases.html" },
+            { label: "case_acme_q3" },
+          ]}
+          actions={<>
+            <span className="dash-pill is-ok"><span className="dot-live"/> ready · 24 files</span>
+            <a className="btn btn-ghost" href="#"><Icon.Hash size={12}/> Export JSON</a>
+            <a className="btn btn-primary" href="#">Run again</a>
+          </>}
+        />
+        <div className="dash-body" style={{ paddingTop: 16 }}>
+          <div className="case-shell">
+            {/* LEFT — case meta + files */}
+            <section className="case-meta">
+              <header className="case-meta-head">
+                <span className="dash-pill is-on">case_acme_q3</span>
+                <h2 className="case-meta-h1">Acme Q3 invoices</h2>
+                <span className="case-meta-sub">created 2024-10-02 · 11:08 UTC · by elif@heliotrope.capital</span>
+              </header>
+              <div className="case-meta-stat">
+                <div><span className="k">Files</span><span className="v">24</span></div>
+                <div><span className="k">Storage</span><span className="v">42.6 MB</span></div>
+                <div><span className="k">API cost</span><span className="v">$0.612</span></div>
+                <div><span className="k">Avg. latency</span><span className="v">2.31s</span></div>
+              </div>
+
+              <div className="case-files-h">
+                <span>Files (4 of 24)</span>
+                <button className="btn btn-link" style={{ fontSize: 11 }}>view all →</button>
+              </div>
+              <ul className="case-files thin-scroll">
+                {FILES.map((f) => (
+                  <li key={f.id}
+                      className={"case-file " + (f.id === activeId ? "is-on" : "")}
+                      onClick={() => setActiveId(f.id)}>
+                    <span className="case-file-ico">
+                      {f.kind === "invoice"   ? <Icon.DocInvoice size={18}/> :
+                       f.kind === "statement" ? <Icon.DocBank size={18}/> :
+                                                <Icon.Doc size={18}/>}
+                    </span>
+                    <span className="case-file-body">
+                      <span className="case-file-name">{f.name}</span>
+                      <span className="case-file-meta">{f.size} · {f.pages}p {f.retried ? "· retried" : ""}</span>
+                    </span>
+                    <span className="case-file-act">
+                      <button title="60s preview URL"
+                              onClick={(e) => { e.stopPropagation(); openPreview(f); }}>
+                        <Icon.ArrowUR size={12}/>
+                      </button>
+                      <button title="delete" onClick={(e) => e.stopPropagation()}>
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    </span>
+                  </li>
+                ))}
+                <li style={{ padding: "12px 18px", color: "var(--muted-2)", fontFamily: "var(--f-mono)", fontSize: 11, textAlign: "center" }}>
+                  + 20 more · scroll
+                </li>
+              </ul>
+            </section>
+
+            {/* RIGHT — Cognitive extraction interface */}
+            <section className="case-extract">
+              <header className="case-extract-head">
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>{active.name}</span>
+                  <span className="f-mono" style={{ fontSize: 11, color: "var(--muted)" }}>
+                    {active.cost.ms}ms · {active.cost.tin.toLocaleString()} tokens in · {active.cost.tout} out
+                    {active.retried && " · double-loop retry"}
+                  </span>
+                </div>
+                <div className="case-extract-tabs">
+                  {[
+                    ["fields",  "fields"],
+                    ["json",    "JSON"],
+                    ["audit",   "audit"],
+                  ].map(([id, label]) => (
+                    <button key={id}
+                            className={"case-extract-tab " + (tab === id ? "is-on" : "")}
+                            onClick={() => setTab(id)}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </header>
+
+              <div className="case-extract-body">
+                {tab === "fields" && (
+                  <div className="case-fields">
+                    {active.fields.map((f) => (
+                      <div key={f.k} className="case-field">
+                        <span className="case-field-k">
+                          <span>{f.k}</span>
+                          <span className={"conf " + (f.conf < 0.9 ? "warn" : "")}>
+                            {(f.conf * 100).toFixed(1)}% conf
+                          </span>
+                        </span>
+                        <span className={"case-field-v " + (["currency", "issued", "due", "invoice_no"].includes(f.k) ? "mono" : "")}>
+                          {f.v}
+                        </span>
+                        <span className="case-field-src">↳ {f.src}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {tab === "json" && (
+                  <pre className="case-json-pane">{renderJSON(active.json)}</pre>
+                )}
+
+                {tab === "audit" && (
+                  <AuditLedger doc={active}/>
+                )}
+              </div>
+
+              <div className="case-cost">
+                <div><span className="k">API cost</span><span className="v">${active.cost.usd.toFixed(4)}</span></div>
+                <div><span className="k">Tokens in</span><span className="v">{active.cost.tin.toLocaleString()}</span></div>
+                <div><span className="k">Tokens out</span><span className="v">{active.cost.tout}</span></div>
+                <div><span className="k">Wall clock</span><span className="v">{(active.cost.ms / 1000).toFixed(2)}s</span></div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        {previewToast && (
+          <div className="preview-toast">
+            <Icon.Lock size={14}/>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span>{previewToast}</span>
+              <span style={{ opacity: 0.6, fontSize: 10 }}>signed URL · expires in 60s</span>
+            </div>
+            <button className="x" onClick={() => setPT(null)}>✕</button>
+          </div>
+        )}
+      </main>
+      <SharedTweaks/>
+    </div>
+  );
+}
+
+function renderJSON(obj, indent = 0) {
+  if (obj === null) return <span className="j-n">null</span>;
+  if (typeof obj === "string") return <><span className="j-s">"{obj}"</span></>;
+  if (typeof obj === "number") return <span className="j-n">{obj}</span>;
+  if (typeof obj === "boolean") return <span className="j-n">{String(obj)}</span>;
+  const pad = "  ".repeat(indent);
+  const inner = "  ".repeat(indent + 1);
+  if (Array.isArray(obj)) {
+    return <><span className="j-p">[</span>
+      {obj.map((v, i) => (
+        <React.Fragment key={i}>
+          {"\n" + inner}
+          {renderJSON(v, indent + 1)}
+          <span className="j-p">{i < obj.length - 1 ? "," : ""}</span>
+        </React.Fragment>
+      ))}
+      {"\n" + pad}<span className="j-p">]</span>
+    </>;
+  }
+  const entries = Object.entries(obj);
+  return <><span className="j-p">{"{"}</span>
+    {entries.map(([k, v], i) => (
+      <React.Fragment key={k}>
+        {"\n" + inner}<span className="j-k">"{k}"</span><span className="j-p">: </span>
+        {renderJSON(v, indent + 1)}
+        <span className="j-p">{i < entries.length - 1 ? "," : ""}</span>
+      </React.Fragment>
+    ))}
+    {"\n" + pad}<span className="j-p">{"}"}</span>
+  </>;
+}
+
+function AuditLedger({ doc }) {
+  const steps = [
+    { step: "ingest",      hash: "a7c1f0…29bd", ms: 12,   warn: false },
+    { step: "parser",      hash: "29bd17…48fe", ms: 1840, warn: false },
+    ...(doc.retried ? [{ step: "verify.fail", hash: "48fe22…91a0", ms: 320, warn: true }] : []),
+    ...(doc.retried ? [{ step: "retry",       hash: "91a0aa…cc18", ms: 980, warn: false }] : []),
+    { step: "verify",      hash: "cc1802…d4e1", ms: 410, warn: false },
+    { step: "synthesize",  hash: "d4e1f8…7b03", ms: 1450, warn: false },
+    { step: "emit",        hash: "7b03ee…fa92", ms: 18,   warn: false },
+  ];
+  return (
+    <div style={{ padding: 20, overflowY: "auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <span className="f-mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          ledger chain · sha-256
+        </span>
+        <span className="f-mono" style={{ fontSize: 11, color: "var(--ok)" }}>✓ verified · {steps.length} steps</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {steps.map((s, i) => (
+          <div key={i} style={{
+            display: "grid",
+            gridTemplateColumns: "26px 1fr 1fr 80px 20px",
+            gap: 14,
+            padding: "11px 12px",
+            borderTop: i ? "1px solid var(--hairline)" : "0",
+            alignItems: "center",
+            background: s.warn ? "color-mix(in oklab, var(--warn) 6%, transparent)" : "transparent",
+          }}>
+            <span className="f-mono" style={{ fontSize: 11, color: "var(--muted-2)" }}>{String(i).padStart(2, "0")}</span>
+            <span className="f-mono" style={{ fontSize: 13, color: s.warn ? "var(--warn)" : "var(--ink-2)" }}>{s.step}</span>
+            <span className="f-mono" style={{ fontSize: 11.5, color: "var(--muted)" }}>sha256:{s.hash}</span>
+            <span className="f-mono tabular" style={{ fontSize: 11, color: "var(--muted)", textAlign: "right" }}>{s.ms}ms</span>
+            {s.warn ? <span className="f-mono" style={{ fontSize: 9, color: "var(--warn)", textTransform: "uppercase" }}>retry</span>
+                    : <Icon.Check size={12}/>}
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 18, padding: 14, background: "var(--surface-2)", border: "1px dashed var(--hairline-2)", borderRadius: 8 }}>
+        <span className="f-mono" style={{ fontSize: 10.5, color: "var(--muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>chain root</span>
+        <p style={{ margin: "4px 0 0", fontFamily: "var(--f-mono)", fontSize: 12, color: "var(--ink)", wordBreak: "break-all" }}>
+          sha256:7b03ee83d8…a7c1f02998cc18d4e1f8fa92
+        </p>
+      </div>
+    </div>
+  );
+}
+
+applySharedTokens({ accent: "gold", theme: "light" });
+ReactDOM.createRoot(document.getElementById("root")).render(<CaseDetail/>);
+</script>
+</body>
+</html>
